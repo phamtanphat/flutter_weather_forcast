@@ -4,6 +4,7 @@ import 'package:flutter_weather_forcast/common/app_constant.dart';
 class DioClient {
   static final Dio _dio = DioClient._createDio();
 
+  // private constructor
   DioClient._();
 
   static Dio getDio() {
