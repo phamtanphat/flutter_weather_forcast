@@ -4,8 +4,8 @@ import 'Weather.dart';
 class WeatherForecast {
   List<Weather>? weather;
   Main? main;
-  int? dt;
-  int? id;
+  num? dt;
+  num? id;
   String? name;
 
   WeatherForecast({this.weather, this.main, this.dt, this.id, this.name});

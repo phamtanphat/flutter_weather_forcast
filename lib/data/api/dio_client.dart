@@ -8,6 +8,7 @@ class DioClient {
   DioClient._();
 
   static Dio getDio() {
+    _dio.interceptors.add(LogInterceptor(responseBody: false));
     return _dio;
   }
 
@@ -17,6 +18,6 @@ class DioClient {
       connectTimeout: Duration(seconds: AppConstant.CONNECTION_TIME_OUT),
       receiveTimeout: Duration(seconds: AppConstant.RECEIVE_TIME_OUT),
       sendTimeout: Duration(seconds: AppConstant.SEND_TIME_OUT),
-    ));
+    ))..interceptors.add(LogInterceptor());
   }
 }

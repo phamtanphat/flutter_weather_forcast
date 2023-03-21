@@ -9,17 +9,12 @@ class ApiRequest {
     _dio = DioClient.getDio();
   }
 
-  Future searchWeatherFromLocation({String location = "Hanoi"}) {
+  Future requestWeatherFromLocation({String location = "Hanoi"}) {
+    location = location.isEmpty ? "Hanoi" : location;
     return _dio.get("data/2.5/weather", queryParameters: {
       "appid": AppConstant.APP_ID,
       "units": "metric",
       "q": location
     });
   }
-}
-
-void main() {
-  var apiRequest = ApiRequest();
-  apiRequest.searchWeatherFromLocation()
-  .then((value) => print(value));
 }

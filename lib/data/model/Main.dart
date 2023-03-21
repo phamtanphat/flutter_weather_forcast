@@ -1,7 +1,7 @@
 class Main {
-  double? temp;
-  double? tempMin;
-  double? tempMax;
+  num? temp;
+  num? tempMin;
+  num? tempMax;
 
   Main({this.temp, this.tempMin, this.tempMax});
 
