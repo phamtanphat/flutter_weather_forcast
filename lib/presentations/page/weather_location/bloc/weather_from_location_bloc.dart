@@ -7,7 +7,7 @@ import 'package:flutter_weather_forcast/presentations/page/weather_location/bloc
 class WeatherFromLocationBloc {
   WeatherRepository? _weatherRepository;
   StreamController<WeatherFromLocationEventBase> eventController = StreamController();
-  StreamController<WeatherForecast> foreCastController = StreamController();
+  StreamController<WeatherForecast> weatherForecastController = StreamController();
   
   WeatherFromLocationBloc() {
     eventController.stream.listen((event) { 
@@ -25,7 +25,12 @@ class WeatherFromLocationBloc {
 
   void searchWeatherFromLocation(SearchFromLocationEvent event) {
     _weatherRepository?.searchWeatherFromLocation(location: event.location)
-        .then((weatherForecast) => foreCastController.add(weatherForecast))
-        .catchError((error) => foreCastController.addError(event));
+        .then((weatherForecast) => weatherForecastController.add(weatherForecast))
+        .catchError((error) => weatherForecastController.addError(event));
+  }
+
+  void dispose() {
+    eventController.close();
+    weatherForecastController.close();
   }
 }
