@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_weather_forcast/data/api/api_request.dart';
 import 'package:flutter_weather_forcast/data/model/WeatherForcast.dart';
@@ -9,20 +11,17 @@ class WeatherRepository {
     _apiRequest = apiRequest;
   }
 
-  Future searchWeatherFromLocation({String location = ""}) async{
+  Future<WeatherForecast> searchWeatherFromLocation({String location = ""}) async{
+    Completer<WeatherForecast> completerWeather = Completer();
     try {
       Response response = await _apiRequest.requestWeatherFromLocation(location: location);
       WeatherForecast weatherForecast = WeatherForecast.fromJson(response.data);
-      print(weatherForecast.main?.temp);
+      completerWeather.complete(weatherForecast);
     } on DioError catch(e){
-      print(e.response?.data["message"]);
+      completerWeather.completeError(e.response?.data["message"]);
     } catch(e) {
-      print("Error ${e.toString()}");
+      completerWeather.completeError(e.toString());
     }
+    return completerWeather.future;
   }
-}
-
-void main() {
-  var weatherRepo = WeatherRepository(apiRequest: ApiRequest());
-  weatherRepo.searchWeatherFromLocation(location: "abc");
 }
