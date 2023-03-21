@@ -6,11 +6,20 @@ import 'package:flutter_weather_forcast/presentations/page/weather_location/bloc
 
 class WeatherFromLocationBloc {
   WeatherRepository? _weatherRepository;
-  StreamController<WeatherFromLocationEventBase> eventController = StreamController();
-  StreamController<WeatherForecast> weatherForecastController = StreamController();
-  
+  StreamController<WeatherFromLocationEventBase> _eventController = StreamController();
+  StreamController<WeatherForecast> _weatherForecastController = StreamController();
+
+
+  Stream<WeatherForecast> getWeatherForecast() {
+    return _weatherForecastController.stream;
+  }
+
+  void addEvent(WeatherFromLocationEventBase event) {
+    _eventController.sink.add(event);
+  }
+
   WeatherFromLocationBloc() {
-    eventController.stream.listen((event) { 
+    _eventController.stream.listen((event) {
       switch(event.runtimeType) {
         case SearchFromLocationEvent:
           searchWeatherFromLocation(event as SearchFromLocationEvent);
@@ -25,12 +34,12 @@ class WeatherFromLocationBloc {
 
   void searchWeatherFromLocation(SearchFromLocationEvent event) {
     _weatherRepository?.searchWeatherFromLocation(location: event.location)
-        .then((weatherForecast) => weatherForecastController.add(weatherForecast))
-        .catchError((error) => weatherForecastController.addError(event));
+        .then((weatherForecast) => _weatherForecastController.add(weatherForecast))
+        .catchError((error) => _weatherForecastController.addError(event));
   }
 
   void dispose() {
-    eventController.close();
-    weatherForecastController.close();
+    _eventController.close();
+    _weatherForecastController.close();
   }
 }
