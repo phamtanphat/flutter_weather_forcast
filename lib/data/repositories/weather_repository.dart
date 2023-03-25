@@ -6,7 +6,7 @@ import 'package:flutter_weather_forcast/data/api/api_request.dart';
 import 'package:flutter_weather_forcast/data/model/WeatherForcast.dart';
 
 class WeatherRepository {
-  ApiRequest? _apiRequest;
+  late ApiRequest _apiRequest;
 
   void setApiRequest(ApiRequest apiRequest) {
     _apiRequest = apiRequest;
@@ -14,28 +14,23 @@ class WeatherRepository {
 
   Future<WeatherForecast> searchWeatherFromLocation({String location = ""}) async{
     Completer<WeatherForecast> completerWeather = Completer();
-    ReceivePort receiveSuccessPort = ReceivePort();
-    ReceivePort receiveErrorPort = ReceivePort();
-    await Isolate.spawn((receivePort) async {
-      try {
-        Response response = await _apiRequest?.requestWeatherFromLocation(location: location);
-        WeatherForecast weatherForecast = WeatherForecast.fromJson(response.data);
-        receiveSuccessPort.sendPort.send(weatherForecast);
-      } on DioError catch(e){
-        receiveErrorPort.sendPort.send(e.response?.data["message"]);
-      } catch(e) {
-        receiveErrorPort.sendPort.send(e.toString());
-      }
-    }, [receiveSuccessPort, receiveErrorPort]);
-
-    WeatherForecast weatherForecast = await receiveSuccessPort.first;
-    String error = await receiveErrorPort.first;
-    if (error.isNotEmpty) {
-      completerWeather.completeError(error);
-    } else {
+    ReceivePort port = ReceivePort();
+    try {
+      Response response = await _apiRequest.requestWeatherFromLocation(location: location);
+      final isolate = await Isolate.spawn(parseWeather, [port.sendPort, response.data]);
+      WeatherForecast weatherForecast = await port.first;
+      isolate.kill(priority: Isolate.immediate);
       completerWeather.complete(weatherForecast);
+    } on DioError catch(e){
+      completerWeather.completeError(e.response?.data["message"]);
+    } catch(e) {
+      completerWeather.completeError(e.toString());
     }
-
     return completerWeather.future;
+  }
+
+  static void parseWeather(List<dynamic> param) {
+    SendPort sendPort = param[0];
+    sendPort.send(WeatherForecast.fromJson(param[1]));
   }
 }
