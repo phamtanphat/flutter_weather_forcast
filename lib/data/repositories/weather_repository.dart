@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:isolate';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_weather_forcast/data/api/api_request.dart';
 import 'package:flutter_weather_forcast/data/model/WeatherForcast.dart';
 
@@ -14,12 +14,9 @@ class WeatherRepository {
 
   Future<WeatherForecast> searchWeatherFromLocation({String location = ""}) async{
     Completer<WeatherForecast> completerWeather = Completer();
-    ReceivePort port = ReceivePort();
     try {
       Response response = await _apiRequest.requestWeatherFromLocation(location: location);
-      final isolate = await Isolate.spawn(parseWeather, [port.sendPort, response.data]);
-      WeatherForecast weatherForecast = await port.first;
-      isolate.kill(priority: Isolate.immediate);
+      WeatherForecast weatherForecast = await compute(WeatherForecast.fromJson, response.data as Map<String, dynamic>);
       completerWeather.complete(weatherForecast);
     } on DioError catch(e){
       completerWeather.completeError(e.response?.data["message"]);
@@ -27,10 +24,5 @@ class WeatherRepository {
       completerWeather.completeError(e.toString());
     }
     return completerWeather.future;
-  }
-
-  static void parseWeather(List<dynamic> param) {
-    SendPort sendPort = param[0];
-    sendPort.send(WeatherForecast.fromJson(param[1]));
   }
 }
